@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="description" content="">
+        <meta name="keywords" content="">
+        <meta name="viewport" content="width=device-width,user-scalable=no,maximum-scale=1">
+        <link rel='stylesheet' href='./stylesheets/style.css'>
+        <link href='https://fonts.googleapis.com/css?family=Condiment' rel='stylesheet' type='text/css'>
+        <script type="text/javascript" src="./javascripts/lib/glcubic.js"></script>
+        <script type="text/javascript" src="./javascripts/lib/simpleAjax.js"></script>
+        <script type="text/javascript" src="./javascripts/lib/util.js"></script>
+        <script type="text/javascript" src="./javascripts/script.js"></script>
+        <script type="x-shader/x-vertex" id="scene_vs">
+            attribute vec3 position;
+            attribute vec4 color;
+            attribute vec2 texCoord;
+
+            uniform mat4 mvpMatrix;
+
+            varying vec4 vColor;
+            varying vec2 vTexCoord;
+
+            void main(){
+                vColor = color;
+                vTexCoord = texCoord;
+                gl_Position = mvpMatrix * vec4(position, 1.0);
+            }
+        </script>
+        <script type="x-shader/x-fragment" id="scene_fs">
+            precision mediump float;
+
+            uniform sampler2D texture;
+
+            varying vec4 vColor;
+            varying vec2 vTexCoord;
+
+            void main(){
+                gl_FragColor = vColor * texture2D(texture, vTexCoord);
+            }
+        </script>
+        <script type="x-shader/x-vertex" id="direct_vs">
+            attribute vec3 position;
+
+            varying vec2 vTexCoord;
+
+            void main(){
+                vTexCoord = ((position + 1.0) * 0.5).xy;
+                gl_Position = vec4(position, 1.0);
+            }
+        </script>
+        <script type="x-shader/x-fragment" id="direct_fs">
+            precision mediump float;
+
+            uniform sampler2D texture;
+
+            varying vec2 vTexCoord;
+
+            void main(){
+                vec4 samplerColor = texture2D(texture, vTexCoord);
+                gl_FragColor = samplerColor;
+            }
+        </script>
+        <script type="x-shader/x-vertex" id="line_vs">
+            attribute vec3 position;
+            attribute vec4 color;
+            attribute vec2 texCoord;
+
+            uniform mat4 mMatrix;
+            uniform mat4 mvpMatrix;
+            uniform vec3 cameraPosition;
+            uniform vec4 ambient;
+            uniform bool tower;
+            uniform float towerScale;
+
+            varying vec4 vColor;
+
+            void main(){
+                vec3 p = position;
+                vec3 mp = (mMatrix * vec4(position, 1.0)).xyz;
+                float fog = 1.0 - min(length(mp - cameraPosition) / 7000.0, 1.0);
+                if(tower && texCoord.t > 0.0){
+                    vec3 np = normalize(p);
+                    p += np * texCoord.s * towerScale;
+                }
+                vColor = color * ambient * vec4(vec3(fog), 1.0);
+                gl_Position = mvpMatrix * vec4(p, 1.0);
+            }
+        </script>
+        <script type="x-shader/x-fragment" id="line_fs">
+            precision mediump float;
+
+            varying vec4 vColor;
+
+            void main(){
+                gl_FragColor = vColor;
+            }
+        </script>
+        <title>title</title>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+        <!-- <div id="layer1" class="layer"></div>                                     -->
+        <!-- <div id="layer2" class="layer"></div>                                     -->
+        <!-- <div id="layer3" class="layer">                                           -->
+        <!--     <p><select id="select" name=""></select></p>                          -->
+        <!--     <p><input id="slide1" type="range" min="1" max="100" value="100"></p> -->
+        <!--     <p><input id="slide2" type="range" min="1" max="1" value="1"></p>     -->
+        <!-- </div>                                                                    -->
+    </body>
+</html>
